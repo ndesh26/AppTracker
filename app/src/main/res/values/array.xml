@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sort">
+        <item>Time</item>
+        <item>Name</item>
+        <item>Received Data</item>
+        <item>Sent Data</item>
+    </string-array>
+    <string-array name="filter">
+        <item>Downloaded Apps</item>
+        <item>System Apps</item>
+        <item>All Apps</item>
+    </string-array>
+</resources>
