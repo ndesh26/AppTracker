@@ -44,6 +44,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -52,7 +53,9 @@ import java.util.Comparator;
 import java.util.List;
 
 
-	public class MainActivity extends ActionBarActivity {
+
+
+public class MainActivity extends ActionBarActivity {
 
 		Context ctx=this;
 		ListView list;
@@ -73,7 +76,8 @@ import java.util.List;
 			Intent intent = new Intent(this, MyService.class);
 			pintent = PendingIntent.getService(this, 0, intent, 0);
 			alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-			alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 1000, pintent);
+			alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000, pintent);
+
 			mProgress = (ProgressBar) findViewById(R.id.progressBar);
 
 			// Set the adapter for the list view
@@ -121,6 +125,7 @@ import java.util.List;
 
 
 			});
+			getSupportActionBar().setIcon(R.drawable.ic_launcher);
 		}
 
 		@Override
@@ -130,7 +135,10 @@ import java.util.List;
 
 
 		}
+		public void onEvent(DataMb event){
+			Toast.makeText(this,event.getName(),Toast.LENGTH_SHORT).show();
 
+		}
 
 
 		public void createList(int i) {
