@@ -21,18 +21,23 @@ import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.TrafficStats;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,6 +53,7 @@ import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -62,7 +68,7 @@ public class MainActivity extends ActionBarActivity {
 		List<DataMb> data=new ArrayList<DataMb>();
 		private ProgressBar mProgress;
 		private int mProgressStatus = 0;
-
+		List<UsageStats> usageStatses;
 		private Handler mHandler = new Handler();
 		AlarmManager alarm;
 		int current_sort=0;
@@ -71,12 +77,18 @@ public class MainActivity extends ActionBarActivity {
 		protected void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
 			setContentView(R.layout.main);
+			//Check if permission enabled
+			if (UStats.getUsageStatsList(this).isEmpty()){
+				Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+				startActivity(intent);
+			}
 
+			UStats.printCurrentUsageStatus(ctx);
 			list=(ListView)findViewById(R.id.listView2);
 			Intent intent = new Intent(this, MyService.class);
 			pintent = PendingIntent.getService(this, 0, intent, 0);
 			alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-			alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000, pintent);
+			//alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000, pintent);
 
 			mProgress = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -149,6 +161,7 @@ public class MainActivity extends ActionBarActivity {
             // get a list of installed apps.
             List<ApplicationInfo> packages = pm.getInstalledApplications(0);
             String s = "";
+			usageStatses=UStats.getUsageStatsList(ctx);
             // loop through the list of installed packages and see if the selected
             // app is in the list
             if(i==1){
@@ -179,20 +192,38 @@ public class MainActivity extends ActionBarActivity {
                 double send = (double) TrafficStats.getUidTxBytes(UID)
                         / (1024 * 1024);
                 //double total = received + send;
+				if(Build.VERSION.SDK_INT<20){
+						Data dop = new Data(this);
+						Cursor CR = dop.getInformation(dop);
+						CR.moveToFirst();
+						while (CR.moveToNext()) {
 
-                Data dop = new Data(this);
-                Cursor CR = dop.getInformation(dop);
-                CR.moveToFirst();
-                while (CR.moveToNext()) {
+							if (CR.getString(0).equals(name)) {
+								time = CR.getLong(1);
+								lastuse=CR.getString(2);
+								break;
+							}
 
-                    if (CR.getString(0).equals(name)) {
-                        time = CR.getLong(1);
-						lastuse=CR.getString(2);
-                        break;
-                    }
+						}
+						CR.close();
+				}
+				else{
+					for (UsageStats usageStatus :usageStatses) {
+						PackageManager pm1 = ctx.getPackageManager();
+						PackageInfo foregroundAppPackageInfo = null;
+						try {
+							foregroundAppPackageInfo = pm1.getPackageInfo(usageStatus.getPackageName(), 0);
+						} catch (PackageManager.NameNotFoundException e) {
+							e.printStackTrace();
+						}
+						if (foregroundAppPackageInfo.applicationInfo.loadLabel(pm).toString().equals(name)) {
+							time = usageStatus.getTotalTimeInForeground()/1000;
+							lastuse=String.valueOf(usageStatus.getLastTimeUsed());
+							break;
+						}
 
-                }
-                CR.close();
+					}
+				}
                 data.add(new DataMb(name, received, send, time, icon_resized,lastuse,SourceDir));
                 time = 0;
 
@@ -229,19 +260,38 @@ public class MainActivity extends ActionBarActivity {
                             / (1024 * 1024);
                     //double total = received + send;
 
-                    Data dop = new Data(this);
-                    Cursor CR = dop.getInformation(dop);
-                    CR.moveToFirst();
-                    while (CR.moveToNext()) {
+					if(Build.VERSION.SDK_INT<20){
+						Data dop = new Data(this);
+						Cursor CR = dop.getInformation(dop);
+						CR.moveToFirst();
+						while (CR.moveToNext()) {
 
-                        if (CR.getString(0).equals(name)) {
-                            time = CR.getLong(1);
-							lastuse=CR.getString(2);
-                            break;
-                        }
+							if (CR.getString(0).equals(name)) {
+								time = CR.getLong(1);
+								lastuse=CR.getString(2);
+								break;
+							}
 
-                    }
-                    CR.close();
+						}
+						CR.close();
+					}
+					else{
+						for (UsageStats usageStatus :usageStatses) {
+							PackageManager pm1 = ctx.getPackageManager();
+							PackageInfo foregroundAppPackageInfo = null;
+							try {
+								foregroundAppPackageInfo = pm1.getPackageInfo(usageStatus.getPackageName(), 0);
+							} catch (PackageManager.NameNotFoundException e) {
+								e.printStackTrace();
+							}
+							if (foregroundAppPackageInfo.applicationInfo.loadLabel(pm).toString().equals(name)) {
+								time = usageStatus.getTotalTimeInForeground()/1000;
+								lastuse=String.valueOf(usageStatus.getLastTimeUsed());
+								break;
+							}
+
+						}
+					}
                     data.add(new DataMb(name, received, send, time, icon_resized,lastuse,SourceDir));
                     time = 0;
 
@@ -280,20 +330,38 @@ public class MainActivity extends ActionBarActivity {
                                 / (1024 * 1024);
                         //double total = received + send;
 
-                        Data dop = new Data(this);
-                        Cursor CR = dop.getInformation(dop);
-                        CR.moveToFirst();
-                        while (CR.moveToNext()) {
+						if(Build.VERSION.SDK_INT<20){
+							Data dop = new Data(this);
+							Cursor CR = dop.getInformation(dop);
+							CR.moveToFirst();
+							while (CR.moveToNext()) {
 
-                            if (CR.getString(0).equals(name)) {
-                                time = CR.getLong(1);
-								lastuse=CR.getString(2);
-                                break;
-                            }
+								if (CR.getString(0).equals(name)) {
+									time = CR.getLong(1);
+									lastuse=CR.getString(2);
+									break;
+								}
 
-                        }
-                        CR.close();
-                        data.add(new DataMb(name, received, send, time, icon_resized,lastuse,SourceDir));
+							}
+							CR.close();
+						}
+						else{
+							for (UsageStats usageStatus :usageStatses) {
+								PackageManager pm1 = ctx.getPackageManager();
+								PackageInfo foregroundAppPackageInfo = null;
+								try {
+									foregroundAppPackageInfo = pm1.getPackageInfo(usageStatus.getPackageName(), 0);
+								} catch (PackageManager.NameNotFoundException e) {
+									e.printStackTrace();
+								}
+								if (foregroundAppPackageInfo.applicationInfo.loadLabel(pm).toString().equals(name)) {
+									time = usageStatus.getTotalTimeInForeground()/1000;
+									lastuse=String.valueOf(usageStatus.getLastTimeUsed());
+									break;
+								}
+
+							}
+						}data.add(new DataMb(name, received, send, time, icon_resized,lastuse,SourceDir));
                         time = 0;
 
                         // s = s + name + "  " + String.format("%.2f MB", received) + "  " + String.format("%.2f MB", send) + "\n";
