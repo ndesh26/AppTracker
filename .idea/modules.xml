@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/PhoneMonitor.iml" filepath="$PROJECT_DIR$/PhoneMonitor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AppTracker-master.iml" filepath="$PROJECT_DIR$/AppTracker-master.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

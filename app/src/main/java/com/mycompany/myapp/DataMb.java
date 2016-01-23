@@ -14,20 +14,20 @@ public class DataMb {
     public long time;
     public Drawable icon;
     public String lastuse;
-    public String SourceDir;
 
 
 
 
 
-    public DataMb(String name, double received, double send,long time,Drawable icon,String lastuse,String SourceDir) {
+
+    public DataMb(String name, double received, double send,long time,Drawable icon,String lastuse) {
         this.name = name;
         this.received = received;
         this.send = send;
         this.time=time;
         this.icon=icon;
         this.lastuse=lastuse;
-        this.SourceDir=SourceDir;
+
 
     }
     public long getTime(){
@@ -46,7 +46,7 @@ public class DataMb {
     public double getReceived() {
         return received;
     }
-    public String getSourceDir(){return SourceDir;}
+
     public void setReceived(double  received) {
         this.received = received;
     }

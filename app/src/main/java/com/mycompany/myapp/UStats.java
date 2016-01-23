@@ -11,6 +11,7 @@ import android.util.Log;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by User on 3/2/15.
@@ -44,14 +45,23 @@ public class UStats {
     public static List<UsageStats> getUsageStatsList(Context context){
         UsageStatsManager usm = getUsageStatsManager(context);
         Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR, 18);
+        calendar.set(Calendar.MINUTE,0);
+        calendar.set(Calendar.SECOND, 0);
+
         long endTime = calendar.getTimeInMillis();
-        calendar.add(Calendar.YEAR, -1);
+
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        //calendar.set(Calendar.DATE, 1);
+        //calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        //calendar.set(Calendar.YEAR, 2015);
+
         long startTime = calendar.getTimeInMillis();
 
         Log.d(TAG, "Range start:" + dateFormat.format(startTime) );
         Log.d(TAG, "Range end:" + dateFormat.format(endTime));
 
-        List<UsageStats> usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,startTime,endTime);
+        List<UsageStats> usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST,startTime, endTime);
         return usageStatsList;
     }
 
@@ -65,7 +75,7 @@ public class UStats {
                 e.printStackTrace();
             }
             Log.d(TAG, "Pkg: " +  foregroundAppPackageInfo.applicationInfo.loadLabel(pm).toString() +  "\t" + "ForegroundTime: "
-                    + u.getTotalTimeInForeground()) ;
+                    + String.valueOf(((u.getTotalTimeInForeground()/60000)/60)/24)+"d "+String.valueOf(((u.getTotalTimeInForeground()/60000)/60)%24)+"hr "+String.valueOf((u.getTotalTimeInForeground()/60000)%60)+"m "+String.valueOf((u.getTotalTimeInForeground()/1000) % 60)+"s") ;
         }
 
     }

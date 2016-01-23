@@ -24,22 +24,24 @@ public class Data extends SQLiteOpenHelper {
         super(context, Table.TableInfo.DATABASE_NAME, null, database_version);
     }
        long time;
+
     @Override
     public void onCreate(SQLiteDatabase sdb){
         sdb.execSQL(CREATE_QUERY);
         Log.d("database operations","table created");
     }
-    public void putInformation(Data dop,String value){
+    public void putInformation(Data dop,String value,long time1,String lastuse_new){
         int count=0;
         SQLiteDatabase SQ =dop.getWritableDatabase();
         Cursor CR=getInformation(dop);
         CR.moveToFirst();
         while(CR.moveToNext()){
            if(CR.getString(0).equals(value)){
-              time=CR.getLong(1);
-                time++;
-              update(dop,CR.getString(0),time);
-               count++;
+                time=CR.getLong(1);
+                time=time+time1;
+                update(dop,CR.getString(0),time,lastuse_new);
+                count++;
+                break;
            }
 
         }
@@ -51,7 +53,7 @@ public class Data extends SQLiteOpenHelper {
             cv.put(Table.TableInfo.TIME,0);
             cv.put(Table.TableInfo.LASTUSE,DateFormat.getDateTimeInstance().format(new Date()));
             SQ.insert(Table.TableInfo.TABLE_NAME,null,cv);
-            count=0;
+
 
         }
         SQ.close();
@@ -64,13 +66,13 @@ public class Data extends SQLiteOpenHelper {
         String coloumns[]={Table.TableInfo.APPDATA, Table.TableInfo.TIME,  Table.TableInfo.LASTUSE};
         Cursor CR = sq.query(Table.TableInfo.TABLE_NAME,coloumns,null,null,null,null,null);
         return CR;}
-    public void update(Data dop,String appname,long time){
+    public void update(Data dop,String appname,long time,String lastuse){
         SQLiteDatabase SQ=dop.getWritableDatabase();
         String selection= Table.TableInfo.APPDATA+" LIKE ?";
         String args[]={appname};
         ContentValues cv=new ContentValues();
         cv.put(Table.TableInfo.TIME,time);
-        cv.put(Table.TableInfo.LASTUSE, DateFormat.getDateTimeInstance().format(new Date()));
+        cv.put(Table.TableInfo.LASTUSE, lastuse);
         SQ.update(Table.TableInfo.TABLE_NAME,cv,selection,args);
         SQ.close();
     }
